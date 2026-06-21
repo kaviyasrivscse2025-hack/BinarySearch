@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Search Visualizer</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#0f172a,#1e293b,#312e81);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    overflow-x:hidden;
+}
+
+body::before{
+    content:'';
+    position:fixed;
+    width:450px;
+    height:450px;
+    background:#6366f1;
+    border-radius:50%;
+    filter:blur(160px);
+    top:-100px;
+    left:-100px;
+    opacity:.4;
+}
+
+body::after{
+    content:'';
+    position:fixed;
+    width:450px;
+    height:450px;
+    background:#06b6d4;
+    border-radius:50%;
+    filter:blur(160px);
+    bottom:-100px;
+    right:-100px;
+    opacity:.4;
+}
+
+.container{
+    width:95%;
+    max-width:1300px;
+    backdrop-filter:blur(20px);
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:30px;
+    padding:30px;
+    color:white;
+    box-shadow:0 25px 50px rgba(0,0,0,.4);
+    position:relative;
+    z-index:10;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:25px;
+    font-size:2.8rem;
+}
+
+.controls{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:15px;
+}
+
+input{
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    outline:none;
+    background:rgba(255,255,255,.12);
+    color:white;
+    font-size:1rem;
+}
+
+input::placeholder{
+    color:#d1d5db;
+}
+
+button{
+    border:none;
+    border-radius:14px;
+    cursor:pointer;
+    font-weight:bold;
+    font-size:1rem;
+    transition:.3s;
+    padding:14px;
+}
+
+.generate{
+    background:#06b6d4;
+    color:white;
+}
+
+.search{
+    background:#6366f1;
+    color:white;
+}
+
+.reset{
+    background:#ef4444;
+    color:white;
+}
+
+button:hover{
+    transform:translateY(-3px);
+}
+
+.array-container{
+    margin-top:40px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:12px;
+    min-height:180px;
+}
+
+.item-wrapper{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.pointer{
+    font-size:.85rem;
+    font-weight:bold;
+    color:#facc15;
+    min-height:20px;
+}
+
+.box{
+    width:70px;
+    height:70px;
+    border-radius:18px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.15);
+    font-size:1.2rem;
+    font-weight:bold;
+    transition:.5s;
+}
+
+.left{
+    background:#3b82f6 !important;
+}
+
+.right{
+    background:#ef4444 !important;
+}
+
+.mid{
+    background:#f59e0b !important;
+    transform:scale(1.1);
+}
+
+.found{
+    background:#22c55e !important;
+    transform:scale(1.15);
+}
+
+.inactive{
+    opacity:.25;
+}
+
+.stats{
+    margin-top:30px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:18px;
+    padding:20px;
+    text-align:center;
+}
+
+.card h2{
+    margin-top:10px;
+    font-size:2rem;
+}
+
+.status{
+    text-align:center;
+    margin-top:25px;
+    font-size:1.2rem;
+    min-height:40px;
+    font-weight:600;
+}
+
+.complexity{
+    margin-top:25px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+}
+
+.complexity div{
+    padding:15px;
+    border-radius:15px;
+    background:rgba(255,255,255,.08);
+    text-align:center;
+}
+
+footer{
+    text-align:center;
+    margin-top:25px;
+    color:#cbd5e1;
+}
+
+@media(max-width:600px){
+    .box{
+        width:55px;
+        height:55px;
+    }
+
+    h1{
+        font-size:2rem;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>⚡ Binary Search Visualizer</h1>
+
+<div class="controls">
+    <input type="number" id="size" placeholder="Array Size (5-30)">
+    <button class="generate" onclick="generateArray()">Generate Sorted Array</button>
+
+    <input type="number" id="target" placeholder="Target Value">
+    <button class="search" onclick="startSearch()">Start Search</button>
+
+    <button class="reset" onclick="resetAll()">Reset</button>
+</div>
+
+<div class="array-container" id="arrayContainer"></div>
+
+<div class="status" id="status">
+Generate a sorted array to begin.
+</div>
+
+<div class="stats">
+
+<div class="card">
+<p>Iterations</p>
+<h2 id="iterations">0</h2>
+</div>
+
+<div class="card">
+<p>Current Mid</p>
+<h2 id="midValue">-</h2>
+</div>
+
+<div class="card">
+<p>Array Size</p>
+<h2 id="arraySize">0</h2>
+</div>
+
+</div>
+
+<div class="complexity">
+<div>Best Case: <b>O(1)</b></div>
+<div>Average Case: <b>O(log n)</b></div>
+<div>Worst Case: <b>O(log n)</b></div>
+</div>
+
+<footer>
+Binary Search requires a sorted array.
+</footer>
+
+</div>
+
+<script>
+
+let arr=[];
+let searching=false;
+
+function generateArray(){
+
+    if(searching) return;
+
+    const size=parseInt(document.getElementById("size").value)||15;
+
+    if(size<5 || size>30){
+        alert("Size should be between 5 and 30");
+        return;
+    }
+
+    arr=[];
+
+    let value=Math.floor(Math.random()*10);
+
+    for(let i=0;i<size;i++){
+        value+=Math.floor(Math.random()*5)+1;
+        arr.push(value);
+    }
+
+    renderArray();
+
+    document.getElementById("arraySize").textContent=arr.length;
+    document.getElementById("iterations").textContent="0";
+    document.getElementById("midValue").textContent="-";
+
+    document.getElementById("status").innerHTML=
+    "Sorted array generated successfully.";
+}
+
+function renderArray(left=-1,right=-1,mid=-1){
+
+    const container=document.getElementById("arrayContainer");
+    container.innerHTML="";
+
+    arr.forEach((num,index)=>{
+
+        const wrapper=document.createElement("div");
+        wrapper.className="item-wrapper";
+
+        const pointer=document.createElement("div");
+        pointer.className="pointer";
+
+        let labels=[];
+
+        if(index===left) labels.push("L");
+        if(index===mid) labels.push("M");
+        if(index===right) labels.push("R");
+
+        pointer.textContent=labels.join(" ");
+
+        const box=document.createElement("div");
+        box.className="box";
+        box.textContent=num;
+
+        if(index===left) box.classList.add("left");
+        if(index===right) box.classList.add("right");
+        if(index===mid) box.classList.add("mid");
+
+        wrapper.appendChild(pointer);
+        wrapper.appendChild(box);
+
+        container.appendChild(wrapper);
+    });
+}
+
+async function startSearch(){
+
+    if(searching) return;
+
+    if(arr.length===0){
+        alert("Generate array first");
+        return;
+    }
+
+    const target=parseInt(document.getElementById("target").value);
+
+    if(isNaN(target)){
+        alert("Enter target value");
+        return;
+    }
+
+    searching=true;
+
+    let left=0;
+    let right=arr.length-1;
+    let iterations=0;
+
+    while(left<=right){
+
+        iterations++;
+
+        const mid=Math.floor((left+right)/2);
+
+        renderArray(left,right,mid);
+
+        document.getElementById("iterations").textContent=
+        iterations;
+
+        document.getElementById("midValue").textContent=
+        arr[mid];
+
+        document.getElementById("status").innerHTML=
+        `Checking middle value ${arr[mid]}`;
+
+        await new Promise(r=>setTimeout(r,1200));
+
+        if(arr[mid]===target){
+
+            renderArray(left,right,mid);
+
+            document.querySelectorAll(".box")[mid]
+            .classList.add("found");
+
+            document.getElementById("status").innerHTML=
+            `✅ Found ${target} at index ${mid}`;
+
+            searching=false;
+            return;
+        }
+
+        if(arr[mid]<target){
+
+            for(let i=0;i<=mid;i++){
+                document.querySelectorAll(".box")[i]
+                .classList.add("inactive");
+            }
+
+            left=mid+1;
+        }
+        else{
+
+            for(let i=mid;i<arr.length;i++){
+                document.querySelectorAll(".box")[i]
+                .classList.add("inactive");
+            }
+
+            right=mid-1;
+        }
+
+        await new Promise(r=>setTimeout(r,700));
+    }
+
+    document.getElementById("status").innerHTML=
+    `❌ ${target} not found`;
+
+    searching=false;
+}
+
+function resetAll(){
+
+    if(searching) return;
+
+    arr=[];
+
+    document.getElementById("arrayContainer").innerHTML="";
+    document.getElementById("iterations").textContent="0";
+    document.getElementById("midValue").textContent="-";
+    document.getElementById("arraySize").textContent="0";
+
+    document.getElementById("status").innerHTML=
+    "Generate a sorted array to begin.";
+
+    document.getElementById("size").value="";
+    document.getElementById("target").value="";
+}
+
+generateArray();
+
+</script>
+
+</body>
+</html>
